@@ -1,16 +1,16 @@
-from cgitb import text
+#from asyncore import write
+#from cgitb import text
 from lib2to3.pgen2 import driver
-import string
-from typing import Type
+#import string
+#from typing import Type
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from bs4 import BeautifulSoup
-import time
+#import time
 import re
 
-nbla = ''
 
 options = webdriver.ChromeOptions()
 options.add_argument('--start-maximized')
@@ -20,7 +20,7 @@ driver_path = 'C:\\Users\\braya\\Downloads\\chromedriver.exe'
 
 driver = webdriver.Chrome(driver_path, chrome_options=options)
 
-driver.get('https://www.bible.com/es/bible/103/GEN.1.NBLA')
+driver.get('https://www.bible.com/es/bible/103/REV.10.NBLA')
 
 #Click in next arrow
 #WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.next-arrow'))).click()
@@ -28,8 +28,16 @@ driver.get('https://www.bible.com/es/bible/103/GEN.1.NBLA')
 # Recorrer toda la biblia
 nextArrow = WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.next-arrow')))
 
+
+
+nblaArray = []
+
 bookChecker = 'Génesis'
-while nextArrow:
+while True:
+
+    nbla = ''
+
+
     ## Get Book Name
     WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.reader')))
     bookContainer = driver.find_element(By.CSS_SELECTOR, 'div.reader')
@@ -43,8 +51,8 @@ while nextArrow:
         book = book+b+' '
     
     if bookChecker != book:
-        print('</b>')
-        print('<b n="'+book[:-1]+'">')
+        nbla = nbla + '</b>'
+        nbla = nbla +  '<b n="'+book[:-1]+'">'
         bookChecker = book
 
         WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.chapter')))
@@ -54,7 +62,7 @@ while nextArrow:
         capTxt = capitulo.get_attribute('innerHTML')
         soup = BeautifulSoup(capTxt, 'html.parser')
         capNum = soup.find_all('div')[0].string
-        print('<c n="'+capNum+'">')
+        nbla = nbla + '<c n="'+capNum+'">'
 
         # Get Verses with number
 
@@ -65,16 +73,16 @@ while nextArrow:
             soup = BeautifulSoup(vv, 'html.parser')
             numerovv = soup.find_all('span',None)[0].text
             if re.findall('[0-9]+', numerovv) != []:
-                print('<v n="'+numerovv+'">')
+                nbla = nbla + '<v n="'+numerovv+'">'
             versoArray = soup.select('span.content', None)
             versoTxt=''
             for v in versoArray:
                 versoTxt += v.text
-            print(versoTxt)
-            print('</v>')
-        print("</c>")
-
-        WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.next-arrow'))).click()
+            #print(versoTxt)
+            nbla = nbla + versoTxt
+            nbla = nbla + '</v>'
+        nbla = nbla + "</c>"
+        #WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.next-arrow'))).click()
     else:
         WebDriverWait(driver, 5).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'div.chapter')))
         capitulo = driver.find_element(By.CSS_SELECTOR,'div.chapter')
@@ -83,7 +91,7 @@ while nextArrow:
         capTxt = capitulo.get_attribute('innerHTML')
         soup = BeautifulSoup(capTxt, 'html.parser')
         capNum = soup.find_all('div')[0].string
-        print('<c n="'+capNum+'">')
+        nbla = nbla + '<c n="'+capNum+'">'
 
         # Get Verses with number
 
@@ -94,16 +102,28 @@ while nextArrow:
             soup = BeautifulSoup(vv, 'html.parser')
             numerovv = soup.find_all('span',None)[0].text
             if re.findall('[0-9]+', numerovv) != []:
-                print('<v n="'+numerovv+'">')
+                nbla = nbla + '<v n="'+numerovv+'">'
             versoArray = soup.select('span.content', None)
             versoTxt=''
             for v in versoArray:
                 versoTxt += v.text
-            print(versoTxt)
-            print('</v>')
-        print("</c>")
-
+            #print(versoTxt)
+            nbla = nbla + versoTxt
+            nbla = nbla + '</v>'
+        nbla = nbla + "</c>"
+    try:
         WebDriverWait(driver, 5).until(EC.element_to_be_clickable((By.CSS_SELECTOR, 'div.next-arrow'))).click()
+        nblaArray.append(nbla)
+    except:
+        break
+        nblaArray.append(nbla)
+
+print(nblaArray)
+
+# fileB = open('bible.txt', 'a')
+# for b in nblaArray:
+#     fileB.write(b)
+# fileB.close() 
 
 
 
